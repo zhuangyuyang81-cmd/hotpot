@@ -24,7 +24,6 @@
         }
         header h1 { margin: 0; font-size: 1.4rem; font-weight: bold; }
         
-        /* 分類標題 */
         .category-title {
             background-color: #e9ecef;
             padding: 8px 15px;
@@ -81,7 +80,6 @@
             display: inline-block;
         }
         
-        /* 底部結帳控制台 */
         footer {
             position: fixed;
             bottom: 0;
@@ -180,12 +178,10 @@
             ]}
         ];
 
-        // 初始化點餐數據
         const orderData = { table: tableNo, total_price: 0, items: {} };
         const itemPriceMap = {};
         const itemNameMap = {};
 
-        // 渲染菜單
         const menuSection = document.getElementById('menu-section');
         menuConfig.forEach(cat => {
             let catDiv = document.createElement('div');
@@ -216,7 +212,6 @@
             });
         });
 
-        // 數量加減核心邏輯
         function changeQty(itemId, amount) {
             let currentQty = orderData.items[itemId];
             let newQty = currentQty + amount;
@@ -227,7 +222,6 @@
             }
         }
 
-        // 計算總金額
         function calculateTotal() {
             let totalAmount = 0;
             let totalCount = 0;
@@ -243,14 +237,13 @@
             document.getElementById('total-amount').innerText = totalAmount;
         }
 
-        // 送出訂單
         function submitOrder() {
             let hasItems = false;
-            let orderSummary = `📋 桌號：${orderData.table}\n------------------------\n`;
+            let itemDetails = "";
             
             for (let id in orderData.items) {
                 if (orderData.items[id] > 0) {
-                    orderSummary += `${itemNameMap[id]} x ${orderData.items[id]}\n`;
+                    itemDetails += `🔹 **${itemNameMap[id]}** x ${orderData.items[id]}\n`;
                     hasItems = true;
                 }
             }
@@ -260,29 +253,54 @@
                 return;
             }
 
-            orderSummary += `------------------------\n總金額：NT$ ${orderData.total_price}\n🚀 是否確認送出訂單？`;
+            let checkSummary = `📋 桌號：${orderData.table}\n------------------------\n`;
+            for (let id in orderData.items) {
+                if (orderData.items[id] > 0) {
+                    checkSummary += `${itemNameMap[id]} x ${orderData.items[id]}\n`;
+                }
+            }
+            checkSummary += `------------------------\n總金額：NT$ ${orderData.total_price}\n🚀 是否確認送出訂單？`;
             
-            if (confirm(orderSummary)) {
+            if (confirm(checkSummary)) {
                 alert("🚀 訂單傳送中，請稍候...");
 
-                // ⚠️ 貼上你專屬的 Google 傳真網址
-                const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxTNYPS-VJ8vAbybz5_-oDC3oeVE5ZUDEvu1W_UrYKLA6KiOy-GZKFMm-_2dpw_jMN1/exec";
+                // 🔌 終極大對接：將 Discord Webhook 線路直接焊死在網頁內
+                const DISCORD_WEBHOOK_URL = "https://discordapp.com/api/webhooks/1513874776106733739/HDJBhzR8gIZvbNlES6K6r5gGfvtKcCQJ7cf2rd1ZVMpzVV7rSbq2Pka5CrzyJk0ndy7S";
 
-                fetch(GOOGLE_API_URL, {
+                // 組裝成 Discord 機器人看得懂的豪華 Payload 格式
+                const discordPayload = {
+                    username: "🏪 火鍋店雲端櫃檯",
+                    avatar_url: "https://i.imgur.com/4AeNFC3.png",
+                    embeds: [{
+                        title: `🔔 【廚房新訂單 - ${orderData.table}】`,
+                        color: 14495333, // 專業紅
+                        description: `點餐時間：${new Date().toLocaleString('zh-TW', {timeZone: 'Asia/Taipei'})}\n\n**【點餐明細】**\n${itemDetails}`,
+                        fields: [
+                            { name: "💰 訂單總金額", value: `**NT$ ${orderData.total_price} 元**`, inline: false }
+                        ],
+                        footer: { text: "⚡ 智慧無線點餐系統 By 宇揚全端工作室" }
+                    }]
+                };
+
+                fetch(DISCORD_WEBHOOK_URL, {
                     method: "POST",
-                    mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(orderData)
+                    body: JSON.stringify(discordPayload)
                 })
-                .then(() => {
-                    alert("🎉 訂單已成功送達店家！");
-                    for (let id in orderData.items) {
-                        orderData.items[id] = 0;
-                        document.getElementById(`${id}-qty`).innerText = 0;
+                .then(res => {
+                    if (res.ok) {
+                        alert("🎉 訂單已成功傳送到廚房 Discord！");
+                        // 歸零清空
+                        for (let id in orderData.items) {
+                            orderData.items[id] = 0;
+                            document.getElementById(`${id}-qty`).innerText = 0;
+                        }
+                        calculateTotal();
+                    } else {
+                        alert("❌ 發送失敗，請聯絡工程師檢查 Webhook。");
                     }
-                    calculateTotal();
                 })
-                .catch(err => alert("❌ 發送失敗：" + err));
+                .catch(err => alert("❌ 網路發生錯誤：" + err));
             }
         }
     </script>
