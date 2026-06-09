@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>極品火鍋 - 手機線上點餐</title>
+    <style>
+        /* 專門為手機設計的 RWD 漂亮樣式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            background-color: #dc3545; /* 溫暖的火鍋紅 */
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 1.4rem; font-weight: bold; }
+        .menu-container { padding: 15px; padding-bottom: 80px; } /* 留空間給底部的送出按鈕 */
+        .product-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            overflow: hidden;
+            display: flex;
+            padding: 12px;
+            align-items: center;
+        }
+        .product-info { flex: 1; padding-right: 10px; }
+        .product-info h2 { margin: 0 0 5px 0; font-size: 1.1rem; color: #222; }
+        .product-info p { margin: 0; font-size: 0.85rem; color: #777; line-height: 1.3; }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            background: #f1f3f5;
+            border-radius: 20px;
+            padding: 2px;
+        }
+        .quantity-controls button {
+            border: none;
+            background: white;
+            color: #dc3545;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .quantity-controls span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+            display: inline-block;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.1);
+        }
+        .order-button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #28a745; /* 亮眼安全綠 */
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(40,167,69,0.2);
+            transition: background 0.2s;
+        }
+        .order-button:active { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🍲 極品火鍋 - 手機點餐系統</h1>
+    </header>
+
+    <section class="menu-container">
+        <article class="product-item">
+            <div class="product-info">
+                <h2>頂級霜降牛肉</h2>
+                <p>油花分佈均勻如雪花，肉質鮮嫩多汁，入口即化。</p>
+            </div>
+            <div class="quantity-controls">
+                <button onclick="changeQty('beef', -1)">-</button>
+                <span id="beef-qty">0</span>
+                <button onclick="changeQty('beef', 1)">+</button>
+            </div>
+        </article>
+
+        <article class="product-item">
+            <div class="product-info">
+                <h2>嚴選梅花豬肉</h2>
+                <p>肥瘦比例完美，口感Q彈有嚼勁，火鍋必點經典。</p>
+            </div>
+            <div class="quantity-controls">
+                <button onclick="changeQty('pork', -1)">-</button>
+                <span id="pork-qty">0</span>
+                <button onclick="changeQty('pork', 1)">+</button>
+            </div>
+        </article>
+
+        <article class="product-item">
+            <div class="product-info">
+                <h2>新鮮大白菜</h2>
+                <p>產地直送鮮甜爽脆，完美吸收火鍋高湯精華。</p>
+            </div>
+            <div class="quantity-controls">
+                <button onclick="changeQty('cabbage', -1)">-</button>
+                <span id="cabbage-qty">0</span>
+                <button onclick="changeQty('cabbage', 1)">+</button>
+            </div>
+        </article>
+    </section>
+
+    <footer>
+        <button class="order-button" onclick="submitOrder()">送出訂單</button>
+    </footer>
+
+    <script>
+        // 完美的 JavaScript 控制邏輯，防呆、防負數
+        const orderData = { beef: 0, pork: 0, cabbage: 0 };
+        const names = { beef: '頂級霜降牛肉', pork: '嚴選梅花豬肉', cabbage: '新鮮大白菜' };
+
+        function changeQty(item, amount) {
+            let newQty = orderData[item] + amount;
+            if (newQty >= 0) { // 防呆機制：數量不能小於 0
+                orderData[item] = newQty;
+                document.getElementById(`${item}-qty`).innerText = newQty;
+            }
+        }
+
+        // 串接 Google 試算表的遠端發送按鈕
+        function submitOrder() {
+            let hasItems = false;
+            for (let key in orderData) {
+                if (orderData[key] > 0) hasItems = true;
+            }
+            
+            if (!hasItems) {
+                alert("⚠️ 您尚未選擇任何餐點喔！");
+                return;
+            }
+            
+            alert("🚀 訂單傳送中，請稍候...");
+
+            // ⚠️ 宇揚老闆，請把下面這行引號裡面的網址，換成你剛剛複製的 Google 應用程式網址！
+            const GOOGLE_API_URL ="https://script.google.com/macros/s/AKfycbxTNYPS-VJ8vAbybz5_-oDC3oeVE5ZUDEvu1W_UrYKLA6KiOy-GZKFMm-_2dpw_jMN1/exec" ;
+
+            // 發動 Fetch 非同步網路訊號，把訂單噴去 Google 試算表
+            fetch(GOOGLE_API_URL, {
+                method: "POST",
+                mode: "no-cors", 
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(() => {
+                alert("🎉 訂單已成功送達店家廚房！\n感謝您的點餐！");
+                
+                // 自動歸零，準備下一單
+                for (let key in orderData) {
+                    orderData[key] = 0;
+                    document.getElementById(`${key}-qty`).innerText = 0;
+                }
+            })
+            .catch(error => {
+                alert("❌ 系統跳線錯誤，訂單發送失敗：" + error);
+            });
+        }
+    </script>
+</body>
+</html>
