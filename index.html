@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>極品火鍋 - 手機線上點餐</title>
+    <title>極品火鍋 - 智慧線上點餐</title>
     <style>
-        /* 專門為手機設計的 RWD 漂亮樣式 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: #f8f9fa;
             margin: 0;
             padding: 0;
             color: #333;
         }
         header {
-            background-color: #dc3545; /* 溫暖的火鍋紅 */
+            background-color: #dc3545;
             color: white;
             text-align: center;
             padding: 15px 0;
@@ -24,20 +23,34 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         header h1 { margin: 0; font-size: 1.4rem; font-weight: bold; }
-        .menu-container { padding: 15px; padding-bottom: 80px; } /* 留空間給底部的送出按鈕 */
+        
+        /* 分類標題 */
+        .category-title {
+            background-color: #e9ecef;
+            padding: 8px 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #495057;
+            border-left: 5px solid #dc3545;
+            margin-top: 15px;
+        }
+
+        .menu-container { padding: 10px 15px 120px 15px; }
+        
         .product-item {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
             display: flex;
             padding: 12px;
             align-items: center;
         }
         .product-info { flex: 1; padding-right: 10px; }
-        .product-info h2 { margin: 0 0 5px 0; font-size: 1.1rem; color: #222; }
-        .product-info p { margin: 0; font-size: 0.85rem; color: #777; line-height: 1.3; }
+        .product-info h2 { margin: 0 0 3px 0; font-size: 1.05rem; color: #222; }
+        .product-info p { margin: 0 0 5px 0; font-size: 0.8rem; color: #777; line-height: 1.3; }
+        .product-price { color: #dc3545; font-weight: bold; font-size: 0.95rem; margin: 0; }
+        
         .quantity-controls {
             display: flex;
             align-items: center;
@@ -67,20 +80,35 @@
             text-align: center;
             display: inline-block;
         }
+        
+        /* 底部結帳控制台 */
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: white;
-            padding: 12px 20px;
+            padding: 15px 20px;
             box-shadow: 0 -3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
         }
+        .summary-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .total-price { color: #dc3545; font-size: 1.3rem; }
+        
         .order-button {
             display: block;
             width: 100%;
             padding: 14px;
-            background-color: #28a745; /* 亮眼安全綠 */
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 25px;
@@ -89,7 +117,6 @@
             cursor: pointer;
             text-align: center;
             box-shadow: 0 4px 6px rgba(40,167,69,0.2);
-            transition: background 0.2s;
         }
         .order-button:active { background-color: #218838; }
     </style>
@@ -97,102 +124,166 @@
 <body>
 
     <header>
-        <h1>🍲 極品火鍋 - 手機點餐系統</h1>
+        <h1 id="header-title">🍲 極品火鍋 - 手機點餐系統</h1>
     </header>
 
-    <section class="menu-container">
-        <article class="product-item">
-            <div class="product-info">
-                <h2>頂級霜降牛肉</h2>
-                <p>油花分佈均勻如雪花，肉質鮮嫩多汁，入口即化。</p>
-            </div>
-            <div class="quantity-controls">
-                <button onclick="changeQty('beef', -1)">-</button>
-                <span id="beef-qty">0</span>
-                <button onclick="changeQty('beef', 1)">+</button>
-            </div>
-        </article>
-
-        <article class="product-item">
-            <div class="product-info">
-                <h2>嚴選梅花豬肉</h2>
-                <p>肥瘦比例完美，口感Q彈有嚼勁，火鍋必點經典。</p>
-            </div>
-            <div class="quantity-controls">
-                <button onclick="changeQty('pork', -1)">-</button>
-                <span id="pork-qty">0</span>
-                <button onclick="changeQty('pork', 1)">+</button>
-            </div>
-        </article>
-
-        <article class="product-item">
-            <div class="product-info">
-                <h2>新鮮大白菜</h2>
-                <p>產地直送鮮甜爽脆，完美吸收火鍋高湯精華。</p>
-            </div>
-            <div class="quantity-controls">
-                <button onclick="changeQty('cabbage', -1)">-</button>
-                <span id="cabbage-qty">0</span>
-                <button onclick="changeQty('cabbage', 1)">+</button>
-            </div>
-        </article>
-    </section>
+    <section class="menu-container" id="menu-section">
+        </section>
 
     <footer>
-        <button class="order-button" onclick="submitOrder()">送出訂單</button>
+        <div class="summary-bar">
+            <span>已點項目：<span id="total-count">0</span> 項</span>
+            <span>總金額：<span class="total-price">NT$ <span id="total-amount">0</span></span></span>
+        </div>
+        <button class="order-button" onclick="submitOrder()">確認送出訂單</button>
     </footer>
 
     <script>
-        // 完美的 JavaScript 控制邏輯，防呆、防負數
-        const orderData = { beef: 0, pork: 0, cabbage: 0 };
-        const names = { beef: '頂級霜降牛肉', pork: '嚴選梅花豬肉', cabbage: '新鮮大白菜' };
+        // 從網址自動辨識桌號
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableNo = urlParams.get('table') || "未知桌號";
+        document.getElementById('header-title').innerText = `🍲 極品火鍋 - ${tableNo}`;
 
-        function changeQty(item, amount) {
-            let newQty = orderData[item] + amount;
-            if (newQty >= 0) { // 防呆機制：數量不能小於 0
-                orderData[item] = newQty;
-                document.getElementById(`${item}-qty`).innerText = newQty;
+        // 豪華 20 樣火鍋店全品項菜單配置
+        const menuConfig = [
+            { category: "精選湯底 (免費)", items: [
+                { id: "soup_konbu", name: "日式昆布高湯", price: 0, desc: "甘醇清爽，最能襯託食材原汁原味。" },
+                { id: "soup_spicy", name: "川味麻辣湯底", price: 0, desc: "香辣過癮，鴨血豆腐無限制續加。" },
+                { id: "soup_milk", name: "起司鮮奶湯底", price: 0, desc: "濃鬱奶香，搭配海鮮蔬菜的首選。" }
+            ]},
+            { category: "頂級肉品", items: [
+                { id: "beef_frost", name: "頂級霜降牛肉", price: 380, desc: "油花如雪花般均勻，肉質鮮嫩多汁。" },
+                { id: "beef_wagyu", name: "澳洲M9和牛", price: 680, desc: "入口即化，肉食主義頂級享受。" },
+                { id: "pork_plum", name: "嚴選梅花豬肉", price: 280, desc: "肥瘦比例完美，口感Q彈有嚼勁。" },
+                { id: "pork_matsusaka", name: "黃金松阪豬肉", price: 350, desc: "獨特脆彈口感，油脂香氣迷人。" },
+                { id: "chicken_strip", name: "滑嫩去骨雞腿肉", price: 250, desc: "特調醃製，久煮不柴，極致滑嫩。" }
+            ]},
+            { category: "極鮮海鮮", items: [
+                { id: "sea_shrimp", name: "嚴選大草蝦 (4隻)", price: 180, desc: "肉質緊實飽滿，鮮甜彈牙。" },
+                { id: "sea_clam", name: "鮮甜大蛤蜊 (12顆)", price: 120, desc: "顆顆肥美吐沙乾淨，湯頭提鮮必備。" },
+                { id: "sea_squid", name: "現撈船凍透抽", price: 160, desc: "產地直送，口感爽脆鮮甜。" }
+            ]},
+            { category: "在地小農蔬菜", items: [
+                { id: "veg_cabbage", name: "新鮮大白菜", price: 60, desc: "清甜爽脆，完美吸收高湯精華。" },
+                { id: "veg_qingjiang", name: "產地青江菜", price: 50, desc: "翠綠新鮮，多汁爽口營養高。" },
+                { id: "veg_corn", name: "水果玉米 (4塊)", price: 70, desc: "超高甜度，大人小孩都超愛。" },
+                { id: "veg_mushroom", name: "綜合菇類拼盤", price: 100, desc: "香菇、金針菇、杏鮑菇一次滿足。" }
+            ]},
+            { category: "經典火鍋料", items: [
+                { id: "side_dumpling", name: "手工三記魚餃", price: 80, desc: "基隆名店手工製作，皮Q餡多。" },
+                { id: "side_tofu", name: "招牌凍豆腐", price: 40, desc: "孔洞吸飽麻辣湯汁，爆漿過癮。" },
+                { id: "side_yutiao", name: "老油條", price: 50, desc: "麻辣鍋靈魂，沾湯三秒起鍋最脆。" }
+            ]},
+            { category: "冷飲 / 甜點", items: [
+                { id: "drink_tea", name: "古法烏梅汁 (壺)", price: 90, desc: "酸甜解膩，麻辣火鍋黃金搭檔。" },
+                { id: "drink_coke", name: "冰鎮可口可樂", price: 35, desc: "吃火鍋少不了的氣泡暢快感。" }
+            ]}
+        ];
+
+        // 初始化點餐數據
+        const orderData = { table: tableNo, total_price: 0, items: {} };
+        const itemPriceMap = {};
+        const itemNameMap = {};
+
+        // 渲染菜單
+        const menuSection = document.getElementById('menu-section');
+        menuConfig.forEach(cat => {
+            let catDiv = document.createElement('div');
+            catDiv.className = 'category-title';
+            catDiv.innerText = cat.category;
+            menuSection.appendChild(catDiv);
+
+            cat.items.forEach(item => {
+                orderData.items[item.id] = 0;
+                itemPriceMap[item.id] = item.price;
+                itemNameMap[item.id] = item.name;
+
+                let art = document.createElement('article');
+                art.className = 'product-item';
+                art.innerHTML = `
+                    <div class="product-info">
+                        <h2>${item.name}</h2>
+                        <p>${item.desc}</p>
+                        <p class="product-price">NT$ ${item.price}</p>
+                    </div>
+                    <div class="quantity-controls">
+                        <button onclick="changeQty('${item.id}', -1)">-</button>
+                        <span id="${item.id}-qty">0</span>
+                        <button onclick="changeQty('${item.id}', 1)">+</button>
+                    </div>
+                `;
+                menuSection.appendChild(art);
+            });
+        });
+
+        // 數量加減核心邏輯
+        function changeQty(itemId, amount) {
+            let currentQty = orderData.items[itemId];
+            let newQty = currentQty + amount;
+            if (newQty >= 0) {
+                orderData.items[itemId] = newQty;
+                document.getElementById(`${itemId}-qty`).innerText = newQty;
+                calculateTotal();
             }
         }
 
-        // 串接 Google 試算表的遠端發送按鈕
+        // 計算總金額
+        function calculateTotal() {
+            let totalAmount = 0;
+            let totalCount = 0;
+            for (let id in orderData.items) {
+                let qty = orderData.items[id];
+                if (qty > 0) {
+                    totalAmount += qty * itemPriceMap[id];
+                    totalCount += qty;
+                }
+            }
+            orderData.total_price = totalAmount;
+            document.getElementById('total-count').innerText = totalCount;
+            document.getElementById('total-amount').innerText = totalAmount;
+        }
+
+        // 送出訂單
         function submitOrder() {
             let hasItems = false;
-            for (let key in orderData) {
-                if (orderData[key] > 0) hasItems = true;
-            }
+            let orderSummary = `📋 桌號：${orderData.table}\n------------------------\n`;
             
+            for (let id in orderData.items) {
+                if (orderData.items[id] > 0) {
+                    orderSummary += `${itemNameMap[id]} x ${orderData.items[id]}\n`;
+                    hasItems = true;
+                }
+            }
+
             if (!hasItems) {
                 alert("⚠️ 您尚未選擇任何餐點喔！");
                 return;
             }
+
+            orderSummary += `------------------------\n總金額：NT$ ${orderData.total_price}\n🚀 是否確認送出訂單？`;
             
-            alert("🚀 訂單傳送中，請稍候...");
+            if (confirm(orderSummary)) {
+                alert("🚀 訂單傳送中，請稍候...");
 
-            // ⚠️ 宇揚老闆，請把下面這行引號裡面的網址，換成你剛剛複製的 Google 應用程式網址！
-            const GOOGLE_API_URL ="https://script.google.com/macros/s/AKfycbxTNYPS-VJ8vAbybz5_-oDC3oeVE5ZUDEvu1W_UrYKLA6KiOy-GZKFMm-_2dpw_jMN1/exec" ;
+                // ⚠️ 貼上你專屬的 Google 傳真網址
+                const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxTNYPS-VJ8vAbybz5_-oDC3oeVE5ZUDEvu1W_UrYKLA6KiOy-GZKFMm-_2dpw_jMN1/exec";
 
-            // 發動 Fetch 非同步網路訊號，把訂單噴去 Google 試算表
-            fetch(GOOGLE_API_URL, {
-                method: "POST",
-                mode: "no-cors", 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(orderData)
-            })
-            .then(() => {
-                alert("🎉 訂單已成功送達店家廚房！\n感謝您的點餐！");
-                
-                // 自動歸零，準備下一單
-                for (let key in orderData) {
-                    orderData[key] = 0;
-                    document.getElementById(`${key}-qty`).innerText = 0;
-                }
-            })
-            .catch(error => {
-                alert("❌ 系統跳線錯誤，訂單發送失敗：" + error);
-            });
+                fetch(GOOGLE_API_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(orderData)
+                })
+                .then(() => {
+                    alert("🎉 訂單已成功送達店家！");
+                    for (let id in orderData.items) {
+                        orderData.items[id] = 0;
+                        document.getElementById(`${id}-qty`).innerText = 0;
+                    }
+                    calculateTotal();
+                })
+                .catch(err => alert("❌ 發送失敗：" + err));
+            }
         }
     </script>
 </body>
